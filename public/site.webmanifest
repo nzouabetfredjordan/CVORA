@@ -1,0 +1,9 @@
+{
+  "name": "CVORA",
+  "short_name": "CVORA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3F7FC",
+  "theme_color": "#1266D6",
+  "icons": []
+}
