@@ -21,10 +21,12 @@ function Brand(){return <button className="brand-button" onClick={()=>window.dis
 function Header({page,navigate,session}){
  const [open,setOpen]=useState(false)
  const go=p=>{navigate(p);setOpen(false);window.scrollTo({top:0,behavior:'smooth'})}
- const items=[['cvs','Modèles de CV'],['letters','Lettres de motivation'],['jobs','Demandes d’emploi'],['stages','Demandes de stage'],['pricing','Tarifs'],['ai','Assistant IA']]
+ const mainItems=[['cvs','Modèles de CV'],['letters','Lettres de motivation'],['jobs','Demandes d’emploi'],['stages','Demandes de stage']]
+ const extraItems=[['pricing','Tarifs'],['ai','Assistant IA']]
+ const items=[...mainItems,...extraItems]
  const isAdmin=session?.user?.email?.toLowerCase()===import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase()
  return <header className="header"><div className="nav-wrap"><button className="brand-button" onClick={()=>go('home')}><div className="brand"><img src="/logo.jpeg" alt="CVORA"/><span>CVORA</span></div></button>
-  <nav className={open?'nav open':'nav'}>{items.map(([p,label])=><button key={p} className={page===p?'active':''} onClick={()=>go(p)}>{label}</button>)}
+  <nav className={open?'nav open':'nav'}>{mainItems.map(([p,label])=><button key={p} className={page===p?'active':''} onClick={()=>go(p)}>{label}</button>)}<div className="mobile-extra-links">{extraItems.map(([p,label])=><button key={p} className={page===p?'active':''} onClick={()=>go(p)}>{label}</button>)}</div>
    <div className="mobile-nav-auth">{session?<><button className="mobile-dashboard" onClick={()=>go(isAdmin?'admin':'dashboard')}>{isAdmin?'Tableau administrateur':'Mon dashboard'}</button><button onClick={async()=>{await supabase?.auth.signOut();go('home')}}>Se déconnecter</button></>:<><button className="mobile-signin" onClick={()=>go('auth')}>Se connecter</button><button className="mobile-signup" onClick={()=>go('auth')}>S’inscrire</button></>}</div>
   </nav>
   <div className="nav-actions">{session?<button className="primary-btn small" onClick={()=>go(isAdmin?'admin':'dashboard')}>{isAdmin?'Administration':'Mon dashboard'} <ArrowRight size={16}/></button>:<><button className="text-btn" onClick={()=>go('auth')}>Se connecter</button><button className="primary-btn small" onClick={()=>go('auth')}>S’inscrire <ArrowRight size={16}/></button></>}</div>
@@ -122,4 +124,6 @@ export default function PlatformApp() {
  const noShell=['editor','auth','dashboard','admin'].includes(page)
  return <>{!noShell&&<Header page={page} navigate={navigate} session={session}/>} {page==='home'&&<Home navigate={navigate}/>} {page==='cvs'&&<CvCatalog navigate={navigate} setTemplate={setTemplate}/>} {page==='letters'&&<DocumentCatalog navigate={navigate} type="letters"/>} {page==='jobs'&&<DocumentCatalog navigate={navigate} type="jobs"/>} {page==='stages'&&<DocumentCatalog navigate={navigate} type="stages"/>} {page==='ai'&&<AIAssistant navigate={navigate} initialDocument={page==='ai'?undefined:'CV'}/>} {page==='pricing'&&<Pricing navigate={navigate}/>} {page==='auth'&&<AuthPage navigate={navigate}/>} {page==='editor'&&<CVEditor template={template} navigate={navigate} session={session}/>} {page==='dashboard'&&session&&<Dashboard navigate={navigate} session={session}/>} {page==='admin'&&session&&session.user.email?.toLowerCase()===import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase()&&<Admin navigate={navigate} session={session}/>} {!noShell&&<Footer/>}{!noShell&&<a className="whatsapp-float" href="https://wa.me/237680409437" target="_blank" rel="noreferrer"><img src="/logowhatsapp.jpeg" alt="WhatsApp"/><span>Besoin d’aide ?</span></a>}</>
 }
+
+
 
