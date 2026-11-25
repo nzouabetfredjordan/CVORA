@@ -3,7 +3,7 @@ const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Méthode non autorisée' })
-  const key = process.env.NOTCHPAY_PUBLIC_KEY || process.env.NOTCHPAY_SECRET_KEY
+  const key = process.env.NOTCHPAY_PUBLIC_KEY
   const reference = String(req.query?.reference || '')
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
   if (!key || !SUPABASE_URL || !SUPABASE_ANON_KEY) return res.status(503).json({ error: 'Le paiement n’est pas configuré.' })
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     const response = await fetch(`https://api.notchpay.co/payments/${encodeURIComponent(reference)}`, { headers: { Authorization: key } })
     const result = await response.json()
     if (!response.ok) return res.status(response.status).json({ error: result.message || 'Statut indisponible.' })
-    const transaction = result.transaction || result.data || {}
+    const transaction = result.payment || result.transaction || result.data?.payment || result.data?.transaction || result.data || {}
     const rawStatus = String(transaction.status || result.status || 'pending').toLowerCase()
     const status = rawStatus === 'complete' || rawStatus === 'completed' ? 'complete'
       : ['failed', 'canceled', 'cancelled', 'expired', 'rejected'].includes(rawStatus) ? 'failed' : 'pending'

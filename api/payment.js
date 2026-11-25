@@ -28,7 +28,9 @@ function detectOperator(phone) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' })
-  const key = process.env.NOTCHPAY_PUBLIC_KEY || process.env.NOTCHPAY_SECRET_KEY
+  // Collection endpoints use the public API key. Keep private/hash keys out of
+  // this flow; they are not substitutes for the public key.
+  const key = process.env.NOTCHPAY_PUBLIC_KEY
   if (!key) return res.status(503).json({ error: 'NotchPay n’est pas configuré sur le serveur.' })
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return res.status(503).json({ error: 'Supabase Auth n’est pas configuré sur le serveur.' })
 
@@ -58,7 +60,8 @@ export default async function handler(req, res) {
   if (!['MTN Mobile Money', 'Orange Money'].includes(method)) return res.status(400).json({ error: 'Choisissez MTN Mobile Money ou Orange Money.' })
   if (!user.email) return res.status(400).json({ error: 'Votre compte doit avoir une adresse e-mail vérifiée pour le paiement.' })
 
-  const isTestKey = /^test_|^(?:pk|sk)_test/i.test(key)
+  const isTestKey = /test/i.test(key)
+  if (/^hsk_/i.test(key)) return res.status(503).json({ error: 'Cette clé NotchPay est une clé de hachage, pas une clé publique de paiement. Configurez NOTCHPAY_PUBLIC_KEY avec la clé publique du mode souhaité.' })
   const testNumbers = new Set(['670000000', '670000001', '670000002', '670000003', '670000004'])
   if (isTestKey && !testNumbers.has(numericPhone)) return res.status(409).json({ error: 'NotchPay est en mode test : les vrais numeros Orange/MTN sont refuses. Configurez votre cle API live_ dans Vercel pour accepter les vrais paiements.' })
 
@@ -80,22 +83,24 @@ export default async function handler(req, res) {
         title: `CVORA — ${product.title}`,
         description: `Document CVORA : ${product.title}`,
         reference,
+        metadata: { user_id: user.id, document_type: documentType, product_name: product.title },
         callback: callbackUrl
       })
     })
     const initialized = await initializedResponse.json()
     if (!initializedResponse.ok) return res.status(initializedResponse.status).json({ error: initialized.message || 'NotchPay a refusé la création du paiement.' })
 
-    const transactionReference = initialized.transaction?.reference || initialized.data?.reference || reference
+    const initializedPayment = initialized.payment || initialized.transaction || initialized.data?.payment || initialized.data?.transaction || initialized.data || {}
+    const transactionReference = initializedPayment.reference || reference
     const chargeResponse = await fetch(`https://api.notchpay.co/payments/${encodeURIComponent(transactionReference)}`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ channel, phone: `+237${numericPhone}` })
+      body: JSON.stringify({ channel, data: { phone: `+237${numericPhone}` } })
     })
     const charged = await chargeResponse.json()
     if (!chargeResponse.ok) return res.status(chargeResponse.status).json({ error: charged.message || 'NotchPay n’a pas pu démarrer la demande USSD.', reference: transactionReference })
 
-    const transaction = charged.transaction || charged.data || {}
+    const transaction = charged.payment || charged.transaction || charged.data?.payment || charged.data?.transaction || charged.data || {}
     return res.status(202).json({
       reference: transactionReference,
       status: transaction.status || 'pending',
