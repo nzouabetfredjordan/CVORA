@@ -21,18 +21,17 @@ function Brand(){return <button className="brand-button" onClick={()=>window.dis
 function Header({page,navigate,session}){
  const [open,setOpen]=useState(false)
  const go=p=>{navigate(p);setOpen(false);window.scrollTo({top:0,behavior:'smooth'})}
- const mainItems=[['cvs','Modèles de CV'],['letters','Lettres de motivation'],['jobs','Demandes d’emploi'],['stages','Demandes de stage']]
+ const mainItems=[['cvs','Modèles de CV'],['letters','Lettre de motivation'],['jobs','Demande d’emploi'],['stages','Demande de stage']]
  const extraItems=[['pricing','Tarifs'],['ai','Assistant IA']]
- const items=[...mainItems,...extraItems]
  const isAdmin=session?.user?.email?.toLowerCase()===import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase()
- return <header className="header"><div className="nav-wrap"><button className="brand-button" onClick={()=>go('home')}><div className="brand"><img src="/logo.jpeg" alt="CVORA"/><span>CVORA</span></div></button>
-  <nav className={open?'nav open':'nav'}>{mainItems.map(([p,label])=><button key={p} className={page===p?'active':''} onClick={()=>go(p)}>{label}</button>)}<div className="mobile-extra-links">{extraItems.map(([p,label])=><button key={p} className={page===p?'active':''} onClick={()=>go(p)}>{label}</button>)}</div>
-   <div className="mobile-nav-auth">{session?<><button className="mobile-dashboard" onClick={()=>go(isAdmin?'admin':'dashboard')}>{isAdmin?'Tableau administrateur':'Mon dashboard'}</button><button onClick={async()=>{await supabase?.auth.signOut();go('home')}}>Se déconnecter</button></>:<><button className="mobile-signin" onClick={()=>go('auth')}>Se connecter</button><button className="mobile-signup" onClick={()=>go('auth')}>S’inscrire</button></>}</div>
-  </nav>
-  <div className="nav-actions">{session?<button className="primary-btn small" onClick={()=>go(isAdmin?'admin':'dashboard')}>{isAdmin?'Administration':'Mon dashboard'} <ArrowRight size={16}/></button>:<><button className="text-btn" onClick={()=>go('auth')}>Se connecter</button><button className="primary-btn small" onClick={()=>go('auth')}>S’inscrire <ArrowRight size={16}/></button></>}</div>
-  <button className="menu-btn" aria-label={open?'Fermer le menu':'Ouvrir le menu'} aria-expanded={open} onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button></div></header>
+ useEffect(()=>{if(!open)return;const closeOnEscape=event=>{if(event.key==='Escape')setOpen(false)};window.addEventListener('keydown',closeOnEscape);return()=>window.removeEventListener('keydown',closeOnEscape)},[open])
+ return <header className="header"><div className="nav-wrap">
+  <button className="brand-button" onClick={()=>go('home')}><div className="brand"><img src="/logo.jpeg" alt="CVORA"/><span>CVORA</span></div></button>
+  <nav className="nav primary-nav" aria-label="Navigation principale">{mainItems.map(([p,label])=><button key={p} className={page===p?'active':''} onClick={()=>go(p)}>{label}</button>)}</nav>
+  <button className="menu-btn" aria-label={open?'Fermer le menu':'Ouvrir le menu'} aria-expanded={open} aria-haspopup="true" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button>
+  {open&&<div className="menu-dropdown"><div className="menu-dropdown-links">{extraItems.map(([p,label])=><button key={p} className={page===p?'active':''} onClick={()=>go(p)}>{label}<ArrowRight size={15}/></button>)}</div><div className="menu-dropdown-auth">{session?<><button className="menu-primary" onClick={()=>go(isAdmin?'admin':'dashboard')}>{isAdmin?'Tableau administrateur':'Mon espace'}</button><button onClick={async()=>{await supabase?.auth.signOut();go('home')}}>Se déconnecter</button></>:<><button onClick={()=>go('auth')}>Se connecter</button><button className="menu-primary" onClick={()=>go('auth')}>S’inscrire</button></>}</div></div>}
+ </div></header>
 }
-
 function Home({navigate}){
  return <>
   <main className="hero"><div className="hero-orb one"/><div className="hero-orb two"/><div className="hero-grid container"><div className="hero-copy"><div className="eyebrow"><Sparkles size={16}/> Votre avenir professionnel commence ici</div><h1>Créez un CV qui raconte <span>vos résultats.</span></h1><p>Modèles modernes, assistant IA et documents professionnels prêts en quelques minutes.</p><div className="hero-actions"><button className="primary-btn large" onClick={()=>navigate('cvs')}>Créer mon CV <ArrowRight size={18}/></button><button className="ghost-btn" onClick={()=>navigate('ai')}><Bot size={18}/> Essayer l’assistant IA</button></div><div className="trust-row"><span><Check/> CV compatibles ATS</span><span><Check/> Export PDF professionnel</span><span><Check/> Téléchargement sécurisé</span></div></div><div className="hero-visual"><div className="hero-photo"><img src="/img1.jpg" alt="Professionnelle utilisant CVORA"/></div><div className="resume-float"><div className="resume-mini"><aside><div>MK</div><b>COMPÉTENCES</b><i/><i/><i/><b>LANGUES</b><i/><i/></aside><section><h3>MAYA KOUMÉ</h3><h6>CHEF DE PROJET DIGITAL</h6><b>PROFIL</b><p>Professionnelle orientée résultats et innovation.</p><b>EXPÉRIENCE</b><strong>Chef de projet digital</strong><small>StartApp · 2023 - Aujourd’hui</small></section></div></div><div className="score-float"><div>92</div><p><b>Score ATS</b><span>Excellent</span></p></div></div></div></main>
