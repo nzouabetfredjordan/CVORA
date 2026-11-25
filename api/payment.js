@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  const secret = process.env.NOTCHPAY_SECRET_KEY
-  if (!secret) return res.status(503).json({ error: 'NOTCHPAY_SECRET_KEY n’est pas configurée' })
+  const key = process.env.NOTCHPAY_PUBLIC_KEY || process.env.NOTCHPAY_SECRET_KEY
+  if (!key) return res.status(503).json({ error: 'Clé NotchPay non configurée' })
 
   const { amount, currency = 'XAF', email, phone, method, description } = req.body || {}
   if (!amount || !email) return res.status(400).json({ error: 'amount and email are required' })
@@ -9,12 +9,15 @@ export default async function handler(req, res) {
   try {
     const response = await fetch('https://api.notchpay.co/payments', {
       method: 'POST',
-      headers: { Authorization: secret, 'Content-Type': 'application/json' },
+      headers: { Authorization: key, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         amount,
         currency,
-        email,
-        phone,
+        customer: {
+          name: 'Client CVORA',
+          email,
+          phone: phone?.startsWith('+') ? phone : `+237${phone}`
+        },
         description: description || 'Achat CVORA',
         reference: `CVORA-${Date.now()}`,
         metadata: { provider: method || 'mobile_money' },
