@@ -139,3 +139,5 @@ grant execute on function public.cvora_admin_analytics(text,date,date,text) to a
 do $$ begin alter publication supabase_realtime add table public.payment_records; exception when duplicate_object then null; when duplicate_table then null; end $$;
 do $$ begin alter publication supabase_realtime add table public.subscriptions; exception when duplicate_object then null; when duplicate_table then null; end $$;
 do $$ begin alter publication supabase_realtime add table public.subscription_usage; exception when duplicate_object then null; when duplicate_table then null; end $$;
+
+notify pgrst, 'reload schema';
