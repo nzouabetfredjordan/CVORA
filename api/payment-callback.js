@@ -1,8 +1,13 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  const event = req.body || {}
-  if (event.status === 'complete' || event.status === 'successful') {
-    return res.status(200).json({ received: true, payment: 'verified' })
-  }
-  return res.status(200).json({ received: true })
+	if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+	const reference = req.query?.reference || req.body?.reference || req.body?.transaction?.reference
+	if (!reference) return res.status(400).json({ error: 'Référence NotchPay manquante' })
+	try {
+		const key = process.env.NOTCHPAY_PUBLIC_KEY || process.env.NOTCHPAY_SECRET_KEY
+		const response = await fetch(`https://api.notchpay.co/payments/${encodeURIComponent(reference)}`, { headers: { Authorization: key, 'Content-Type': 'application/json' } })
+		const data = await response.json()
+		if (!response.ok) return res.status(response.status).json(data)
+		const status = data.transaction?.status
+		return res.status(200).json({ received: true, payment: status === 'complete' ? 'verified' : 'pending', reference, status })
+	} catch (error) { return res.status(500).json({ error: 'Impossible de vérifier le paiement', detail: error.message }) }
 }
