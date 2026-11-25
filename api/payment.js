@@ -62,8 +62,7 @@ export default async function handler(req, res) {
 
   const isTestKey = /test/i.test(key)
   if (/^hsk_/i.test(key)) return res.status(503).json({ error: 'Cette clé NotchPay est une clé de hachage, pas une clé publique de paiement. Configurez NOTCHPAY_PUBLIC_KEY avec la clé publique du mode souhaité.' })
-  const testNumbers = new Set(['670000000', '670000001', '670000002', '670000003', '670000004'])
-  if (isTestKey && !testNumbers.has(numericPhone)) return res.status(409).json({ error: 'Les paiements réels ne sont pas activés pour CVORA. Le compte marchand NotchPay doit être validé, puis sa clé de production configurée dans Vercel.' })
+  if (isTestKey) return res.status(503).json({ error: 'Les paiements sont suspendus tant que le compte NotchPay est en mode test. Activez la production et configurez la clé Live dans Vercel.' })
 
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || 'cvora-ten.vercel.app').split(',')[0]
   const protocol = req.headers['x-forwarded-proto'] || 'https'

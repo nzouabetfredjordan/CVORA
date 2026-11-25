@@ -7,6 +7,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée.' })
   const key = process.env.NOTCHPAY_PUBLIC_KEY
   if (!key || /^hsk_/i.test(key)) return res.status(503).json({ error: 'Configurez la clé publique NotchPay (et non la clé de hachage) pour recharger le portefeuille.' })
+  if (/test/i.test(key)) return res.status(503).json({ error: 'Les recharges sont suspendues tant que NotchPay est en mode test. Activez la production et configurez la clé Live dans Vercel.' })
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return res.status(503).json({ error: 'Supabase n’est pas configuré.' })
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
   if (!token) return res.status(401).json({ error: 'Connectez-vous pour recharger le portefeuille.' })

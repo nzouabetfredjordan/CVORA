@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   if (!notchpayKey || !SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(503).json({ error: 'Le portefeuille n’est pas entièrement configuré sur le serveur.' })
   }
+  if (/test/i.test(notchpayKey)) return res.status(503).json({ error: 'Les crédits de portefeuille sont suspendus en mode test. Configurez la clé NotchPay de production.' })
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
   const reference = String(req.body?.reference || '')
   if (!token) return res.status(401).json({ error: 'Connectez-vous pour confirmer la recharge.' })

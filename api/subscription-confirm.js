@@ -4,6 +4,7 @@ export default async function handler(req,res){
  if(req.method!=='POST')return res.status(405).json({error:'Méthode non autorisée.'})
  const key=process.env.NOTCHPAY_PUBLIC_KEY,token=String(req.headers.authorization||'').replace(/^Bearer\s+/i,''),reference=String(req.body?.reference||'')
  if(!key||!URL||!ANON||!SERVICE)return res.status(503).json({error:'Variables serveur incomplètes : NotchPay, Supabase Auth et Service Role sont requis.'})
+ if(/test/i.test(key))return res.status(503).json({error:'Les activations d’abonnement sont suspendues en mode test. Configurez la clé NotchPay de production.'})
  try{
   const auth=await fetch(`${URL}/auth/v1/user`,{headers:{apikey:ANON,Authorization:`Bearer ${token}`}});if(!auth.ok)return res.status(401).json({error:'Session expirée.'})
   const user=await auth.json(),match=reference.match(new RegExp(`^CVORA-SUB-${user.id}-(day1|day2|month4)-[a-f0-9-]{36}$`,'i'));if(!match)return res.status(403).json({error:'Cette souscription ne correspond pas à votre compte.'})

@@ -8,6 +8,7 @@ export default async function handler(req, res) {
   const reference = String(req.query?.reference || '')
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
   if (!key || !SUPABASE_URL || !SUPABASE_ANON_KEY) return res.status(503).json({ error: 'Le paiement n’est pas configuré.' })
+  if (/test/i.test(key)) return res.status(503).json({ error: 'Les confirmations de paiement sont suspendues en mode test. Configurez la clé NotchPay de production.' })
   const match = reference.match(/^CVORA-([a-f0-9-]{36})-([a-f0-9-]{36})$/i)
   if (!match) return res.status(400).json({ error: 'Référence de paiement invalide.' })
   if (!token) return res.status(401).json({ error: 'Connectez-vous pour vérifier le paiement.' })
