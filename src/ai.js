@@ -1,5 +1,18 @@
 const stopWords = new Set('avec dans pour sur par une des les aux leur leurs cette votre vous nous sont etre avoir plus moins chez comme quand alors aussi depuis entre vers sans peut faire fait cela ceci offre poste profil experience professionnelle professionnel equipe entreprise recherche candidat candidature mission missions competences'.split(' '))
 
+const normalizeQuestion = value => String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+export function answerCareerQuestion(question='') {
+ const q=normalizeQuestion(question)
+ if(!q.trim())return 'Posez une question sur votre CV, une candidature, un entretien ou votre recherche d’emploi.'
+ if(/\b(cv|curriculum|resume)\b/.test(q))return 'Pour un CV efficace en 2026, indiquez : 1) vos coordonnées et un titre ciblé ; 2) un profil de 2–3 lignes ; 3) vos expériences en ordre antéchronologique, avec résultats chiffrés ; 4) les compétences demandées dans l’offre ; 5) formation, langues et certifications utiles. Restez clair, honnête et lisible par les logiciels ATS ; la photo est facultative.'
+ if(/ats|logiciel|tri automatique/.test(q))return 'Utilisez une mise en page simple, des titres standards (« Expérience », « Formation », « Compétences ») et les mots-clés pertinents de l’offre. Évitez les colonnes complexes, icônes à la place du texte et compétences que vous ne maîtrisez pas. Vérifiez le PDF en sélectionnant son texte.'
+ if(/lettre|motivation/.test(q))return 'Une lettre courte (3–4 paragraphes) relie votre motivation aux besoins de l’offre : pourquoi ce poste, deux preuves concrètes de vos compétences, puis une proposition d’entretien. Personnalisez le nom de l’entreprise et évitez de répéter votre CV.'
+ if(/entretien|interview/.test(q))return 'Préparez trois exemples précis de réalisations : contexte, action, résultat. Relisez l’offre et l’entreprise, préparez une réponse brève sur votre motivation et deux questions à poser. Restez factuel et illustrez vos compétences par des résultats vérifiables.'
+ if(/stage|stagiaire/.test(q))return 'Précisez votre formation, le domaine et les dates souhaitées. Reliez les cours ou projets pertinents aux missions, indiquez vos objectifs d’apprentissage et joignez un CV clair. Si votre établissement exige une convention, mentionnez-le.'
+ if(/emploi|candidature|postuler|recrut/.test(q))return 'Adaptez le titre et les premières lignes du CV au poste. Reprenez les exigences réellement présentes dans l’offre, donnez des exemples mesurables et vérifiez les coordonnées, dates et pièces jointes avant l’envoi.'
+ return 'Pour vous répondre précisément, indiquez le poste ou le domaine concerné et votre objectif (CV, lettre, entretien ou stage). En général, appuyez chaque compétence par un exemple concret et adaptez votre candidature à l’offre.'
+}
+
 export function detectSector(text = '') {
  const value = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
  if (/develop|logiciel|informat|technique|ingenieur|reseau|cyber|systeme|data|donnee/.test(value)) return 'Technologie et informatique'

@@ -1,5 +1,6 @@
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Méthode non autorisée' })
@@ -23,6 +24,10 @@ export default async function handler(req, res) {
     const rawStatus = String(transaction.status || result.status || 'pending').toLowerCase()
     const status = rawStatus === 'complete' || rawStatus === 'completed' ? 'complete'
       : ['failed', 'canceled', 'cancelled', 'expired', 'rejected'].includes(rawStatus) ? 'failed' : 'pending'
+    if (status === 'complete' && SUPABASE_SERVICE_ROLE_KEY) {
+      const record = await fetch(`${SUPABASE_URL}/rest/v1/rpc/cvora_record_payment`, { method: 'POST', headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_user: user.id, p_reference: reference, p_amount: Number(transaction.amount), p_kind: 'document' }) })
+      if (!record.ok) return res.status(502).json({ error: 'Paiement confirmé mais son enregistrement comptable a échoué. Contactez le support.' })
+    }
     return res.status(200).json({ reference, status })
   } catch {
     return res.status(502).json({ error: 'Impossible de vérifier le statut auprès de NotchPay.' })
