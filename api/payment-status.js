@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     if (user.id !== match[1]) return res.status(403).json({ error: 'Ce paiement ne correspond pas à votre compte.' })
     const response = await fetch(`https://api.notchpay.co/payments/${encodeURIComponent(reference)}`, { headers: { Authorization: key } })
     const result = await response.json()
-    if (!response.ok) return res.status(response.status).json({ error: result.message || 'Statut indisponible.' })
+    if (!response.ok) return res.status(response.status).json({ error: 'Statut de paiement momentanément indisponible.' })
     const transaction = result.payment || result.transaction || result.data?.payment || result.data?.transaction || result.data || {}
     const rawStatus = String(transaction.status || result.status || 'pending').toLowerCase()
     const status = rawStatus === 'complete' || rawStatus === 'completed' ? 'complete'
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       const record = await fetch(`${SUPABASE_URL}/rest/v1/rpc/cvora_record_payment`, { method: 'POST', headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_user: user.id, p_reference: reference, p_amount: Number(transaction.amount), p_kind: 'document' }) })
       if (!record.ok) return res.status(502).json({ error: 'Paiement confirmé mais son enregistrement comptable a échoué. Contactez le support.' })
     }
-    return res.status(200).json({ reference, status })
+    return res.status(200).json({ status })
   } catch {
     return res.status(502).json({ error: 'Impossible de vérifier le statut auprès de NotchPay.' })
   }

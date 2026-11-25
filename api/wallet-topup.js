@@ -31,11 +31,11 @@ export default async function handler(req, res) {
       })
     })
     const result = await response.json()
-    if (!response.ok) return res.status(response.status).json({ error: result.message || 'NotchPay n’a pas pu créer le paiement.' })
+    if (!response.ok) return res.status(response.status).json({ error: 'NotchPay n’a pas pu créer la recharge. Vérifiez que le compte marchand et le moyen de paiement sont actifs.' })
     const transaction = result.payment || result.transaction || result.data?.payment || result.data?.transaction || result.data || {}
     const authorizationUrl = result.authorization_url || transaction.authorization_url
     if (!authorizationUrl) return res.status(502).json({ error: 'NotchPay n’a pas retourné de lien de paiement.' })
-    return res.status(200).json({ reference: transaction.reference || reference, authorization_url: authorizationUrl })
+    return res.status(200).json({ authorization_url: authorizationUrl })
   } catch {
     return res.status(502).json({ error: 'Impossible de joindre NotchPay.' })
   }

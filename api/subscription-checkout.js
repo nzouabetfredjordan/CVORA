@@ -11,9 +11,9 @@ export default async function handler(req,res){
   const user=await auth.json(),plan=String(req.body?.plan||''),entry=PLANS[plan];if(!entry)return res.status(400).json({error:'Formule inconnue.'})
   const reference=`CVORA-SUB-${user.id}-${plan}-${randomUUID()}`,host=String(req.headers['x-forwarded-host']||req.headers.host||'cvora-ten.vercel.app').split(',')[0],protocol=req.headers['x-forwarded-proto']||'https'
   const response=await fetch('https://api.notchpay.co/payments',{method:'POST',headers:{Authorization:key,'Content-Type':'application/json'},body:JSON.stringify({amount:entry.amount,currency:'XAF',customer:{name:user.user_metadata?.full_name||user.user_metadata?.name||user.email,email:user.email},description:`Abonnement CVORA ${plan}`,reference,callback:`${protocol}://${host}/dashboard?subscription_payment=${encodeURIComponent(reference)}`,metadata:{user_id:user.id,type:'subscription',plan}})})
-  const data=await response.json();if(!response.ok)return res.status(response.status).json({error:data.message||'NotchPay a refusé le paiement.'})
+  const data=await response.json();if(!response.ok)return res.status(response.status).json({error:'NotchPay a refusé le paiement. Vérifiez que le compte marchand et le moyen de paiement sont actifs.'})
   const payment=data.payment||data.transaction||data.data?.payment||data.data?.transaction||data.data||{}
   const checkout=data.authorization_url||payment.authorization_url;if(!checkout)return res.status(502).json({error:'Lien de paiement manquant.'})
-  return res.status(200).json({reference:payment.reference||reference,authorization_url:checkout})
+  return res.status(200).json({authorization_url:checkout})
  }catch{return res.status(502).json({error:'Impossible de joindre NotchPay.'})}
 }

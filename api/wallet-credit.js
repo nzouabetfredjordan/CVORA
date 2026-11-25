@@ -31,8 +31,8 @@ export default async function handler(req, res) {
       body: JSON.stringify({ p_user: user.id, p_amount: amount, p_reference: reference, p_description: `Recharge NotchPay confirmée (${amount} XAF)` })
     })
     const balance = await credited.json()
-    if (!credited.ok) return res.status(502).json({ error: 'Le paiement est confirmé, mais le crédit du portefeuille a échoué. Contactez le support avec la référence.', reference })
-    return res.status(200).json({ credited: true, balance: Number(balance), reference })
+    if (!credited.ok) return res.status(502).json({ error: 'Le paiement est confirmé, mais le crédit du portefeuille a échoué. Contactez le support pour rétablir le solde.' })
+    return res.status(200).json({ credited: true, balance: Number(balance) })
   } catch {
     return res.status(502).json({ error: 'Impossible de vérifier ou créditer cette recharge.' })
   }

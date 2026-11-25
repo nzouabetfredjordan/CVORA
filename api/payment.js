@@ -63,7 +63,7 @@ export default async function handler(req, res) {
   const isTestKey = /test/i.test(key)
   if (/^hsk_/i.test(key)) return res.status(503).json({ error: 'Cette clé NotchPay est une clé de hachage, pas une clé publique de paiement. Configurez NOTCHPAY_PUBLIC_KEY avec la clé publique du mode souhaité.' })
   const testNumbers = new Set(['670000000', '670000001', '670000002', '670000003', '670000004'])
-  if (isTestKey && !testNumbers.has(numericPhone)) return res.status(409).json({ error: 'NotchPay est en mode test : les vrais numeros Orange/MTN sont refuses. Configurez votre cle API live_ dans Vercel pour accepter les vrais paiements.' })
+  if (isTestKey && !testNumbers.has(numericPhone)) return res.status(409).json({ error: 'Les paiements réels ne sont pas activés pour CVORA. Le compte marchand NotchPay doit être validé, puis sa clé de production configurée dans Vercel.' })
 
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || 'cvora-ten.vercel.app').split(',')[0]
   const protocol = req.headers['x-forwarded-proto'] || 'https'
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
       })
     })
     const initialized = await initializedResponse.json()
-    if (!initializedResponse.ok) return res.status(initializedResponse.status).json({ error: initialized.message || 'NotchPay a refusé la création du paiement.' })
+    if (!initializedResponse.ok) return res.status(initializedResponse.status).json({ error: 'NotchPay a refusé la création du paiement. Vérifiez le compte marchand, les paramètres et les moyens de paiement activés.' })
 
     const initializedPayment = initialized.payment || initialized.transaction || initialized.data?.payment || initialized.data?.transaction || initialized.data || {}
     const transactionReference = initializedPayment.reference || reference
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({ channel, data: { phone: `+237${numericPhone}` } })
     })
     const charged = await chargeResponse.json()
-    if (!chargeResponse.ok) return res.status(chargeResponse.status).json({ error: charged.message || 'NotchPay n’a pas pu démarrer la demande USSD.', reference: transactionReference })
+    if (!chargeResponse.ok) return res.status(chargeResponse.status).json({ error: 'NotchPay n’a pas pu démarrer la demande Mobile Money. Vérifiez le numéro et réessayez.' })
 
     const transaction = charged.payment || charged.transaction || charged.data?.payment || charged.data?.transaction || charged.data || {}
     return res.status(202).json({

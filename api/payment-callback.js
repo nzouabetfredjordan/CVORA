@@ -7,8 +7,8 @@ export default async function handler(req, res) {
 		if (!key) return res.status(503).json({ error: 'NotchPay is not configured.' })
 		const response = await fetch(`https://api.notchpay.co/payments/${encodeURIComponent(reference)}`, { headers: { Authorization: key, 'Content-Type': 'application/json' } })
 		const data = await response.json()
-		if (!response.ok) return res.status(response.status).json(data)
+		if (!response.ok) return res.status(response.status).json({ error: 'Statut de paiement indisponible.' })
 		const status = (data.payment || data.transaction || data.data?.payment || data.data?.transaction || data.data)?.status
-		return res.status(200).json({ received: true, payment: status === 'complete' ? 'verified' : 'pending', reference, status })
+		return res.status(200).json({ received: true, payment: status === 'complete' ? 'verified' : 'pending' })
 	} catch (error) { return res.status(500).json({ error: 'Impossible de vérifier le paiement', detail: error.message }) }
 }
