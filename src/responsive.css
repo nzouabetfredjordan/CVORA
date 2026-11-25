@@ -440,3 +440,24 @@ button, input, select, textarea { min-width: 0; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Clear template samples, mobile payment outcomes, and a clean one-document print view. */
+.template-preview aside i { display: block; width: 78%; height: 3px; margin: 7px 0; border-radius: 2px; background: rgba(255,255,255,.78); }
+.template-preview aside i:nth-of-type(2n) { width: 56%; }
+.payment-status { margin: 12px 0; padding: 11px 12px; border-radius: 9px; font-size: 13px; line-height: 1.5; text-align: left; }
+.payment-status.pending { color: #765700; background: #fff7dd; }
+.payment-status.success { color: #176b43; background: #e7f7ee; }
+.payment-status.failed { color: #a32929; background: #fff0ef; }
+.payment-modal .outline-btn.full { width: 100%; margin-top: 10px; }
+.cv-sheet { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+@media print {
+  body * { visibility: hidden !important; }
+  .cv-sheet, .cv-sheet * { visibility: visible !important; }
+  .cv-sheet { position: absolute !important; inset: 0 auto auto 0 !important; width: 210mm !important; min-width: 0 !important; min-height: 297mm !important; margin: 0 !important; transform: none !important; zoom: 1 !important; box-shadow: none !important; }
+  .document-card.paid-document, .document-card.paid-document * { visibility: visible !important; }
+  .document-card.paid-document { position: absolute !important; inset: 0 auto auto 0 !important; width: 210mm !important; border: 0 !important; box-shadow: none !important; }
+  .document-card.paid-document .document-sheet { height: 270mm !important; margin: 0 !important; box-shadow: none !important; }
+  .document-card:not(.paid-document) { display: none !important; }
+  .document-card.paid-document .document-card-footer button { display: none !important; }
+  @page { size: A4; margin: 0; }
+}
