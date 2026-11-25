@@ -19,6 +19,13 @@ function productFor(value = '') {
   return null
 }
 
+function detectOperator(phone) {
+  if (/^(?:650|651|652|653|654|67|680|681|682|683)/.test(phone)) return 'MTN Mobile Money'
+  if (/^(?:64|655|656|657|658|659|686|687|688|689|69)/.test(phone)) return 'Orange Money'
+  if (/^(?:66|684|685)/.test(phone)) return 'unsupported'
+  return null
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' })
   const key = process.env.NOTCHPAY_PUBLIC_KEY || process.env.NOTCHPAY_SECRET_KEY
@@ -38,15 +45,22 @@ export default async function handler(req, res) {
   if (!userResponse.ok) return res.status(401).json({ error: 'Votre session a expiré. Reconnectez-vous.' })
   const user = await userResponse.json()
 
-  const { name, phone, method, documentType } = req.body || {}
+  const { name, phone, method: requestedMethod, documentType } = req.body || {}
   const customerName = String(name || '').trim().replace(/\s+/g, ' ').slice(0, 120)
   const numericPhone = String(phone || '').replace(/\D/g, '').replace(/^237/, '')
   const product = productFor(documentType)
+  const detectedOperator = detectOperator(numericPhone)
+  const method = requestedMethod || (detectedOperator !== 'unsupported' ? detectedOperator : '')
   if (customerName.length < 2) return res.status(400).json({ error: 'Saisissez votre nom complet.' })
   if (!/^6[0-9]{8}$/.test(numericPhone)) return res.status(400).json({ error: 'Numéro Mobile Money invalide : saisissez 9 chiffres commençant par 6.' })
   if (!product) return res.status(400).json({ error: 'Type de document invalide.' })
+  if (detectedOperator === 'unsupported') return res.status(400).json({ error: 'Ce numero semble appartenir a Nexttel. Seuls MTN Mobile Money et Orange Money sont disponibles.' })
   if (!['MTN Mobile Money', 'Orange Money'].includes(method)) return res.status(400).json({ error: 'Choisissez MTN Mobile Money ou Orange Money.' })
   if (!user.email) return res.status(400).json({ error: 'Votre compte doit avoir une adresse e-mail vérifiée pour le paiement.' })
+
+  const isTestKey = /^test_|^(?:pk|sk)_test/i.test(key)
+  const testNumbers = new Set(['670000000', '670000001', '670000002', '670000003', '670000004'])
+  if (isTestKey && !testNumbers.has(numericPhone)) return res.status(409).json({ error: 'NotchPay est en mode test : les vrais numeros Orange/MTN sont refuses. Configurez votre cle API live_ dans Vercel pour accepter les vrais paiements.' })
 
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || 'cvora-ten.vercel.app').split(',')[0]
   const protocol = req.headers['x-forwarded-proto'] || 'https'
@@ -85,7 +99,8 @@ export default async function handler(req, res) {
     return res.status(202).json({
       reference: transactionReference,
       status: transaction.status || 'pending',
-      mode: key.startsWith('test_') ? 'test' : 'live'
+      mode: isTestKey ? 'test' : 'live',
+      operator: method
     })
   } catch {
     return res.status(502).json({ error: 'Impossible de joindre NotchPay. Réessayez dans quelques instants.' })

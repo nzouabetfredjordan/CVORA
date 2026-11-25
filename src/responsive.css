@@ -450,6 +450,17 @@ button, input, select, textarea { min-width: 0; }
 .payment-status.failed { color: #a32929; background: #fff0ef; }
 .payment-modal .outline-btn.full { width: 100%; margin-top: 10px; }
 .cv-sheet { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.password-field { position: relative; width: 100%; }
+.password-field input { width: 100%; padding-right: 48px !important; }
+.password-toggle { position: absolute; top: 50%; right: 8px; display: grid; width: 38px; height: 38px; place-items: center; transform: translateY(-50%); border: 0; border-radius: 8px; background: transparent; color: #60738a; }
+.password-toggle:hover { background: #edf5ff; color: #1266d6; }
+.pending-ai-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 16px 0; padding: 16px; border: 1px solid #dbe8f6; border-radius: 12px; background: #f4f8fd; }
+.pending-ai-card p { margin: 6px 0 0; color: #64768a; }
+.ai-print-document { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .pending-ai-card { align-items: stretch; flex-direction: column; }
+  .pending-ai-card .primary-btn { width: 100%; }
+}
 @media print {
   body * { visibility: hidden !important; }
   .cv-sheet, .cv-sheet * { visibility: visible !important; }
@@ -457,6 +468,8 @@ button, input, select, textarea { min-width: 0; }
   .document-card.paid-document, .document-card.paid-document * { visibility: visible !important; }
   .document-card.paid-document { position: absolute !important; inset: 0 auto auto 0 !important; width: 210mm !important; border: 0 !important; box-shadow: none !important; }
   .document-card.paid-document .document-sheet { height: 270mm !important; margin: 0 !important; box-shadow: none !important; }
+  .ai-print-document, .ai-print-document * { visibility: visible !important; }
+  .ai-print-document { position: absolute !important; inset: 16mm auto auto 16mm !important; width: 178mm !important; max-height: 265mm !important; overflow: hidden !important; white-space: pre-wrap !important; color: #071b35 !important; font: 11pt/1.5 Arial, sans-serif !important; }
   .document-card:not(.paid-document) { display: none !important; }
   .document-card.paid-document .document-card-footer button { display: none !important; }
   @page { size: A4; margin: 0; }
