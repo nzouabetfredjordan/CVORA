@@ -106,6 +106,11 @@ begin
     'online', (select count(*) from public.profiles where last_seen > now() - interval '5 minutes'),
     'documents', (select count(*) from public.documents),
     'applications', (select count(*) from public.job_applications),
+    'dailyStats', coalesce((select jsonb_agg(jsonb_build_object(
+      'day', to_char(days.day, 'YYYY-MM-DD'),
+      'users', (select count(*) from public.profiles p where p.created_at::date = days.day),
+      'documents', (select count(*) from public.documents d where d.created_at::date = days.day)
+    ) order by days.day) from generate_series(current_date - 13, current_date, interval '1 day') as days(day)), '[]'::jsonb),
     'recentUsers', coalesce((select jsonb_agg(jsonb_build_object(
       'id', p.id, 'name', p.full_name, 'email', p.email, 'plan', p.plan,
       'created_at', p.created_at, 'last_seen', p.last_seen,

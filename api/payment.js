@@ -70,7 +70,7 @@ export default async function handler(req, res) {
   const callbackUrl = `${protocol}://${host}/api/payment-callback`
   const reference = `CVORA-${user.id}-${randomUUID()}`
   const headers = { Authorization: key, 'Content-Type': 'application/json' }
-  const channel = method === 'Orange Money' ? 'cm.orange' : 'cm.mtn'
+  const channel = method === 'Orange Money' ? 'cm.orange.ussd' : 'cm.mtn.ussd'
 
   try {
     const initializedResponse = await fetch('https://api.notchpay.co/payments', {
@@ -104,6 +104,7 @@ export default async function handler(req, res) {
     return res.status(202).json({
       reference: transactionReference,
       status: transaction.status || 'pending',
+      ussdCode: charged.ussd_code || charged.data?.ussd_code || transaction.ussd_code || null,
       mode: isTestKey ? 'test' : 'live',
       operator: method
     })
