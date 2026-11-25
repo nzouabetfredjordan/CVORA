@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto'
+import { isLiveNotchPayKey } from '../lib/notchpay.js'
 const URL = process.env.VITE_SUPABASE_URL, ANON = process.env.VITE_SUPABASE_ANON_KEY
 const PLANS = { day1:{amount:1500}, day2:{amount:2500}, month4:{amount:9500} }
 export default async function handler(req,res){
  if(req.method!=='POST')return res.status(405).json({error:'Méthode non autorisée.'})
  const key=process.env.NOTCHPAY_PUBLIC_KEY,token=String(req.headers.authorization||'').replace(/^Bearer\s+/i,'')
  if(!key||/^hsk_/i.test(key)||!URL||!ANON)return res.status(503).json({error:'NotchPay ou Supabase n’est pas configuré.'})
- if(/test/i.test(key))return res.status(503).json({error:'Les souscriptions sont suspendues tant que NotchPay est en mode test. Activez la production et configurez la clé Live dans Vercel.'})
+ if(!isLiveNotchPayKey(key))return res.status(503).json({error:'Les souscriptions sont suspendues tant que la clé NotchPay Live n’est pas configurée.'})
  if(!token)return res.status(401).json({error:'Connectez-vous pour souscrire.'})
  try{
   const auth=await fetch(`${URL}/auth/v1/user`,{headers:{apikey:ANON,Authorization:`Bearer ${token}`}});if(!auth.ok)return res.status(401).json({error:'Session expirée.'})

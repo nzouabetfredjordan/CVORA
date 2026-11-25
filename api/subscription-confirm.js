@@ -1,10 +1,12 @@
+import { isLiveNotchPayKey } from '../lib/notchpay.js'
+
 const URL=process.env.VITE_SUPABASE_URL,ANON=process.env.VITE_SUPABASE_ANON_KEY,SERVICE=process.env.SUPABASE_SERVICE_ROLE_KEY
 const PRICES={day1:1500,day2:2500,month4:9500}
 export default async function handler(req,res){
  if(req.method!=='POST')return res.status(405).json({error:'Méthode non autorisée.'})
  const key=process.env.NOTCHPAY_PUBLIC_KEY,token=String(req.headers.authorization||'').replace(/^Bearer\s+/i,''),reference=String(req.body?.reference||'')
  if(!key||!URL||!ANON||!SERVICE)return res.status(503).json({error:'Variables serveur incomplètes : NotchPay, Supabase Auth et Service Role sont requis.'})
- if(/test/i.test(key))return res.status(503).json({error:'Les activations d’abonnement sont suspendues en mode test. Configurez la clé NotchPay de production.'})
+ if(!isLiveNotchPayKey(key))return res.status(503).json({error:'Les activations sont suspendues tant que la clé NotchPay Live n’est pas configurée.'})
  try{
   const auth=await fetch(`${URL}/auth/v1/user`,{headers:{apikey:ANON,Authorization:`Bearer ${token}`}});if(!auth.ok)return res.status(401).json({error:'Session expirée.'})
   const user=await auth.json(),match=reference.match(new RegExp(`^CVORA-SUB-${user.id}-(day1|day2|month4)-[a-f0-9-]{36}$`,'i'));if(!match)return res.status(403).json({error:'Cette souscription ne correspond pas à votre compte.'})

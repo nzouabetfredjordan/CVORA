@@ -1,3 +1,5 @@
+import { isLiveNotchPayKey } from '../lib/notchpay.js'
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -8,7 +10,7 @@ export default async function handler(req, res) {
   const reference = String(req.query?.reference || '')
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
   if (!key || !SUPABASE_URL || !SUPABASE_ANON_KEY) return res.status(503).json({ error: 'Le paiement n’est pas configuré.' })
-  if (/test/i.test(key)) return res.status(503).json({ error: 'Les confirmations de paiement sont suspendues en mode test. Configurez la clé NotchPay de production.' })
+  if (!isLiveNotchPayKey(key)) return res.status(503).json({ error: 'Les confirmations sont suspendues tant que la clé NotchPay Live n’est pas configurée.' })
   const match = reference.match(/^CVORA-([a-f0-9-]{36})-([a-f0-9-]{36})$/i)
   if (!match) return res.status(400).json({ error: 'Référence de paiement invalide.' })
   if (!token) return res.status(401).json({ error: 'Connectez-vous pour vérifier le paiement.' })

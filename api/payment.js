@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { isLiveNotchPayKey } from '../lib/notchpay.js'
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY
@@ -60,9 +61,8 @@ export default async function handler(req, res) {
   if (!['MTN Mobile Money', 'Orange Money'].includes(method)) return res.status(400).json({ error: 'Choisissez MTN Mobile Money ou Orange Money.' })
   if (!user.email) return res.status(400).json({ error: 'Votre compte doit avoir une adresse e-mail vérifiée pour le paiement.' })
 
-  const isTestKey = /test/i.test(key)
   if (/^hsk_/i.test(key)) return res.status(503).json({ error: 'Cette clé NotchPay est une clé de hachage, pas une clé publique de paiement. Configurez NOTCHPAY_PUBLIC_KEY avec la clé publique du mode souhaité.' })
-  if (isTestKey) return res.status(503).json({ error: 'Les paiements sont suspendus tant que le compte NotchPay est en mode test. Activez la production et configurez la clé Live dans Vercel.' })
+  if (!isLiveNotchPayKey(key)) return res.status(503).json({ error: 'Les paiements sont suspendus tant que la clé Live NotchPay n’est pas configurée. Activez la production et configurez la clé publique Live dans Vercel.' })
 
   const host = String(req.headers['x-forwarded-host'] || req.headers.host || 'cvora-ten.vercel.app').split(',')[0]
   const protocol = req.headers['x-forwarded-proto'] || 'https'
@@ -104,7 +104,7 @@ export default async function handler(req, res) {
       reference: transactionReference,
       status: transaction.status || 'pending',
       ussdCode: charged.ussd_code || charged.data?.ussd_code || transaction.ussd_code || null,
-      mode: isTestKey ? 'test' : 'live',
+      mode: 'live',
       operator: method
     })
   } catch {

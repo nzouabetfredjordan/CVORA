@@ -1,3 +1,5 @@
+import { isLiveNotchPayKey } from '../lib/notchpay.js'
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -8,7 +10,7 @@ export default async function handler(req, res) {
   if (!notchpayKey || !SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(503).json({ error: 'Le portefeuille n’est pas entièrement configuré sur le serveur.' })
   }
-  if (/test/i.test(notchpayKey)) return res.status(503).json({ error: 'Les crédits de portefeuille sont suspendus en mode test. Configurez la clé NotchPay de production.' })
+  if (!isLiveNotchPayKey(notchpayKey)) return res.status(503).json({ error: 'Les crédits sont suspendus tant que la clé NotchPay Live n’est pas configurée.' })
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
   const reference = String(req.body?.reference || '')
   if (!token) return res.status(401).json({ error: 'Connectez-vous pour confirmer la recharge.' })

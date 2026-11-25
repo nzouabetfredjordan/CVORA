@@ -6,7 +6,7 @@ CVORA keeps all Notch Pay credentials in server-side Vercel environment variable
 
 Set these values for the **Production** environment:
 
-- `NOTCHPAY_PUBLIC_KEY`: the public API key selected in Notch Pay Production mode. If the key contains `test_`, all CVORA payment and fulfillment routes stay disabled.
+- `NOTCHPAY_PUBLIC_KEY`: the public API key selected in Notch Pay Production mode. CVORA accepts only Live key formats (`live_...` or `pk_live_...`); sandbox and hash keys are rejected by payment and fulfillment routes.
 - `NOTCHPAY_WEBHOOK_HASH`: the Hash Key shown for the registered webhook endpoint in the same Notch Pay environment. This is not the payment API key.
 - `SUPABASE_SERVICE_ROLE_KEY`: Supabase service role key, server-side only.
 - `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`: the project URL and public/publishable key used by the application.

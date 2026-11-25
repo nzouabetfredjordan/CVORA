@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { isLiveNotchPayKey } from '../lib/notchpay.js'
 
 export const config = { api: { bodyParser: false } }
 
@@ -83,7 +84,7 @@ export default async function handler(req, res) {
   if (!secret || !apiKey || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     return res.status(503).json({ error: 'NotchPay webhook is not fully configured.' })
   }
-  if (/test/i.test(apiKey)) return res.status(503).json({ error: 'Sandbox webhook fulfillment is disabled.' })
+  if (!isLiveNotchPayKey(apiKey)) return res.status(503).json({ error: 'Live webhook fulfillment is not enabled.' })
 
   try {
     const rawBody = await readRawBody(req)
