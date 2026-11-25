@@ -55,8 +55,9 @@ grant execute on function public.is_cvora_admin() to authenticated;
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, full_name, email)
-  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''), new.email)
+  insert into public.profiles (id, full_name, email, role)
+  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', ''), new.email,
+    case when lower(new.email) = 'startapp113@gmail.com' then 'admin' else 'user' end)
   on conflict (id) do update set email = excluded.email,
     full_name = coalesce(nullif(public.profiles.full_name, ''), excluded.full_name);
   return new;
@@ -164,3 +165,5 @@ do $$ begin alter publication supabase_realtime add table public.documents;
 exception when duplicate_object then null; when duplicate_table then null; end $$;
 do $$ begin alter publication supabase_realtime add table public.activity_events;
 exception when duplicate_object then null; when duplicate_table then null; end $$;
+
+update public.profiles set role = 'admin' where lower(email) = 'startapp113@gmail.com';

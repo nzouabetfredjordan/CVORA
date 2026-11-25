@@ -6,6 +6,8 @@ export default async function handler(req, res) {
   const { amount, currency = 'XAF', email, phone, method, description } = req.body || {}
   if (!amount || !email) return res.status(400).json({ error: 'amount and email are required' })
 
+  const callbackUrl = `https://${req.headers['x-forwarded-host'] || req.headers.host || 'cvora-ten.vercel.app'}/api/payment-callback`
+
   try {
     const response = await fetch('https://api.notchpay.co/payments', {
       method: 'POST',
@@ -21,7 +23,7 @@ export default async function handler(req, res) {
         description: description || 'Achat CVORA',
         reference: `CVORA-${Date.now()}`,
         metadata: { provider: method || 'mobile_money' },
-        callback: process.env.NOTCHPAY_CALLBACK_URL
+        callback: callbackUrl
       })
     })
     const data = await response.json()
